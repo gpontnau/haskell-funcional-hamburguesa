@@ -25,6 +25,8 @@ grande = 3
 
 caloriasDeIngredientes :: [(Ingrediente, Number)]
 caloriasDeIngredientes = [("pan", 220),("carne",260),("queso",70),("panceta",90),("lechuga",5),("tomate",22),("huevo",50),("jamon",25)]
+
+condimentos :: [Ingrediente]
 condimentos = ["mayonesa","mostaza","ketchup"]
 
 -- cuantas calorias tiene un ingredinete 
@@ -34,19 +36,16 @@ calorias ingrediente
     | otherwise = 10
 
 caloriaAlimento :: Ingrediente -> [(Ingrediente, Number)] -> Number
-caloriaAlimento ingrediente = snd.head.filter ((== ingrediente).fst)
+caloriaAlimento ingrediente = snd . head . filter ((== ingrediente) . fst) -- devuelve snd es decir la calorias del ingrediente
 
 -- 2 
-bebidaLight :: Bebida -> Bool
-bebidaLight = light
-
 -- hamburguesaBomba es si tiene al menos uno que tenga más de 300 calorías, o si en total la hamburguesa supera más 1000 calorías
 hamburguesaBomba :: Combo -> Bool
 hamburguesaBomba combo =
-    sum (map calorias (hamburguesa combo)) > 1000 || any ((>300) . calorias) (hamburguesa combo)
+    sum (map calorias (hamburguesa combo)) > 1000 || any ((> 300) . calorias) (hamburguesa combo)
 
 esMortal :: Combo -> Bool
-esMortal combo = hamburguesaBomba combo && (not . bebidaLight . bebida) combo
+esMortal combo = hamburguesaBomba combo && (not . light . bebida) combo
 
 -- 3
 type Modificacion = Combo -> Combo
@@ -55,26 +54,26 @@ type Modificacion = Combo -> Combo
 cambiarCombo :: Combo -> [Modificacion] -> Combo
 cambiarCombo = foldl (flip ($))
 
--- A
+-- A. Cambiar acompañamiento
 cambiarAcompanamientoPor :: String -> Modificacion
-cambiarAcompanamientoPor nuevoAcompanamiento combo = combo {acompanamiento = nuevoAcompanamiento}
+cambiarAcompanamientoPor nuevoAcompanamiento combo = combo { acompanamiento = nuevoAcompanamiento }
 
--- B
+-- B. Agrandar bebida
 sigTamañoBebida :: Tamanio -> Tamanio
 sigTamañoBebida tamanioAnterior
     | tamanioAnterior == regular = mediano
     | tamanioAnterior == mediano = grande
-    | otherwise                  = regular
+    | otherwise                  = grande
 
 cambiarTamañoSig :: Bebida -> Bebida
-cambiarTamañoSig bebida = bebida {tamañoBebida = sigTamañoBebida (tamañoBebida bebida)}
+cambiarTamañoSig bebida = bebida { tamañoBebida = sigTamañoBebida (tamañoBebida bebida) }
 
 agrandarBebida :: Modificacion
-agrandarBebida combo = combo {bebida = cambiarTamañoSig (bebida combo) }
+agrandarBebida combo = combo { bebida = cambiarTamañoSig (bebida combo) }
 
--- C
-peroSin :: Restriccion -> Modificacion
-peroSin restriccion combo = combo {hamburguesa = filter (not . restriccion) (hamburguesa combo)}
+-- C. Quitar ingredientes de la hamburguesa
+peroSin :: (Ingrediente -> Bool) -> Modificacion
+peroSin restriccion combo = combo { hamburguesa = filter (not . restriccion) (hamburguesa combo) }
 
 type Restriccion = Ingrediente -> Bool
 
@@ -99,6 +98,6 @@ comboDePrueba = Combo {
     acompanamiento = "papas fritas"
 }
 
--- 5
+-- 5 
 aliviananCombo :: Combo -> [Modificacion] -> Bool
-aliviananCombo combo modificaciones = esMortal combo && esMortal (cambiarCombo combo modificaciones)
+aliviananCombo combo modificaciones = esMortal combo && not (esMortal (cambiarCombo combo modificaciones))
