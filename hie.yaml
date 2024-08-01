@@ -1,0 +1,7 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "haskell-funcional-hamburguesa:lib"
+
+    - path: "./test"
+      component: "haskell-funcional-hamburguesa:test:haskell-funcional-hamburguesa-test"
